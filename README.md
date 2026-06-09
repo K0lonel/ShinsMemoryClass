@@ -77,9 +77,7 @@ Resume()  ..............................................................  #Resum
 
 ## Notes
 
-* **V2 not currently supported.**
-*
-* I've only tested on my end and can confirm it works for me using 32/64 bit AHK_L (AHK V1.1) on Windows 10.
+* I've only tested on my end and can confirm it works for me using 32/64 bit AHK_L (AHK V1.1 + AHK V2+) on Windows 10.
 * If it doesn't work for you let me know, I may be able to help, or maybe not, just depends.
 
 ### Donations
