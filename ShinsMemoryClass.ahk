@@ -188,7 +188,7 @@ class ShinsMemoryClass {
 
 	;write a string of hex bytes
 	;WriteByteString(address,"50 51 E9 FF023194 C3")
-	WriteByteString(address, bytes) {
+	WriteByteString(address, bytes, offsets*) {
 		c := offsets.count()
 		address := (c=0?address:c=1?this.ReadPtr(address+offsets[1]):this.GetPtr2(address,offsets))
 		bytes := this.FormatAoBBytes(bytes)
@@ -280,7 +280,7 @@ class ShinsMemoryClass {
 	}
 
 	OpenProcess(pid,access) {
-		return DllCall("Kernel32.dll\OpenProcess", "UInt", access, "Int", 0, "UInt", pid)
+		return DllCall("Kernel32.dll\OpenProcess", "UInt", access, "Int", 0, "UInt", pid, "Ptr")
 	}
 	
 	;scans the entire process memory for an array of bytes, multithreading should only be disabled if it doesn't work for some reason
@@ -382,13 +382,13 @@ class ShinsMemoryClass {
 
 	;unprotect a region of memory, giving it read+write+execute
 	Unprotect(address,sz:=4) {
-		if (!DllCall("Kernel32.dll\VirtualProtectEx", "Ptr", _m.hProcess, "Ptr", address, "UInt", sz, "UInt", 0x40, "Ptr*", lpflOldProtect))
+		if (!DllCall("Kernel32.dll\VirtualProtectEx", "Ptr", this.hProcess, "Ptr", address, "UInt", sz, "UInt", 0x40, "Ptr*", lpflOldProtect))
 			return 0
 		return lpflOldProtect
 	}
 	;sets a new protection, use the return value of Unprotect to restore the old protection
 	Protect(address,prot,sz:=4) {
-		if (!DllCall("Kernel32.dll\VirtualProtectEx", "Ptr", _m.hProcess, "Ptr", address, "UInt", sz, "UInt", prot, "Ptr*", 0))
+		if (!DllCall("Kernel32.dll\VirtualProtectEx", "Ptr", this.hProcess, "Ptr", address, "UInt", sz, "UInt", prot, "Ptr*", 0))
 			return 0
 		return 1
 	}
@@ -498,7 +498,7 @@ class ShinsMemoryClass {
 				return !wow64
 		} else {
 			tHandle := this.OpenProcess(this.pid,0x1000)
-			v := DllCall("Kernel32.dll\IsWow64Process", "Ptr", this.hProcess, "Int*", wow64)
+			v := DllCall("Kernel32.dll\IsWow64Process", "Ptr", tHandle, "Int*", wow64)
 			DllCall("Kernel32.dll\CloseHandle", "Ptr", tHandle)
 			if (v)
 				return !wow64
@@ -534,7 +534,7 @@ class ShinsMemoryClass {
 		this._ReadInt32 := DllCall("Kernel32.dll\GetProcAddress", "Ptr", mdl, "AStr", "ReadInt32", "Ptr")
 		this._ReadInt64 := DllCall("Kernel32.dll\GetProcAddress", "Ptr", mdl, "AStr", "ReadInt64", "Ptr")
 		this._ReadInt16 := DllCall("Kernel32.dll\GetProcAddress", "Ptr", mdl, "AStr", "ReadInt16", "Ptr")
-		this._ReadInt8 := DllCall("Kernel32.dll\GetProcAddress", "Ptr", mdl, "AStr", "ReadInt16", "Ptr")
+		this._ReadInt8 := DllCall("Kernel32.dll\GetProcAddress", "Ptr", mdl, "AStr", "ReadInt8", "Ptr")
 		this._StrLen := DllCall("Kernel32.dll\GetProcAddress", "Ptr", mdl, "AStr", "StrLen", "Ptr")
 		this._AoBScan := DllCall("Kernel32.dll\GetProcAddress", "Ptr", mdl, "AStr", "AoBScan", "Ptr")
 		this._AoBScanMT := DllCall("Kernel32.dll\GetProcAddress", "Ptr", mdl, "AStr", "AoBScanMT", "Ptr")
@@ -822,4 +822,3 @@ class HookHelper {
 		return "REL_1_" this.mem.tohex(address,1,bits) "_" bits
 	}
 }
-
